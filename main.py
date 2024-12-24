@@ -17,6 +17,6 @@ app.add_middleware(
 app.include_router(router, prefix="/api/v1")
 
 # Root endpoint
-@app.post("/", tags=["Health Check"])
+@app.get("/", tags=["Health Check"])
 async def health_check():
     return {"status": "OK", "message": "Transport Service API is running"}
