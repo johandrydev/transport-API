@@ -1,12 +1,14 @@
+import unicodedata
+from fastapi import HTTPException
 from models.transport_service import TransportService
 
 routes = {
-    ("New York", "Washington DC"): [
+    ("new york", "washington d c"): [
         TransportService(company = "Knight-Swift Transport Services", trucks_per_day = 10),
         TransportService(company = "J.B. Hunt Transport Services Inc", trucks_per_day = 7),
         TransportService(company = "YRC Worldwide", trucks_per_day = 5),
     ],
-    ("San Francisco", "Los Angeles"): [
+    ("san francisco", "los angeles"): [
         TransportService(company = "XPO Logistics", trucks_per_day = 9),
         TransportService(company = "Schneider", trucks_per_day = 6),
         TransportService(company = "Landstar Systems", trucks_per_day = 2),
@@ -19,10 +21,18 @@ default_services = [
 ]
 
 def get_transport_services(from_city: str, to_city: str):
-    key = (from_city, to_city)
+    from_city = from_city.lower().replace(".", "")
+    to_city = to_city.lower().replace(".", "")
+
+    normalizedFromCity = unicodedata.normalize("NFKD", from_city).encode("ascii", "ignore").decode("utf-8")
+    normalizedToCity = unicodedata.normalize("NFKD", to_city).encode("ascii", "ignore").decode("utf-8")
+
+    key = (normalizedFromCity, normalizedToCity)
     if key in routes:
         return routes[key]
-    elif to_city in ["Washington DC", "Los Angeles"]:
+    elif normalizedToCity in ["washington d c", "los angeles"]:
         return default_services
     else:
-        raise ValueError("No transport services available for the given route.")
+        raise HTTPException(status_code=404, detail="No transport services found")
+    
+    
